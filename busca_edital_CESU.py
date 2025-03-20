@@ -19,7 +19,7 @@ response.raise_for_status()  # Verifica se a requisição foi bem-sucedida
 soup = BeautifulSoup(response.content, 'html.parser')
 
 # Vetores de dados que vão limitar a impressão dos editais
-fatec_vetor = [] # Exemplo: fatec_vetor = ["Tatuí", "Baixada Santista"]
+fatec_vetor = ['São Paulo','Guarulhos','Mauá','Itaquaquecetuba','Zona Leste','Ferraz de Vasconcelos','Tatuapé'] # Exemplo: fatec_vetor = ["Tatuí", "Baixada Santista"]
 curso_vetor = [] # Exemplo: curso_vetor = ["Gestão da Tecnologia da Informação", "Processos Gerenciais"]           
 disciplina_vetor = [] # Exemplo: disciplina_vetor = ["PROJETOS DE TECNOLOGIA DA INFORMAÇÃO II", "Teoria das Organizações"]
 area_disciplina_vetor = [] # Exemplo: area_disciplina_vetor = ["Ciência da computação", "Administração e negócios"]
@@ -60,9 +60,9 @@ if table:
                 # Verificando se o edital possui informações completas
                 if edital_no and fatec and curso and disciplina and area_disciplina and determinado and data_abertura and periodo_aula and data_limite:
                     # Convertendo a data limite para um objeto datetime
-                    data_limite_dt = datetime.strptime(data_limite, '%d/%m/%Y')
-                    data_atual = datetime.now()
-
+                    data_limite_dt = datetime.strptime(data_limite, '%d/%m/%Y').date()
+                    data_atual = datetime.now().date()
+                    
                     # Verificando se a data atual é menor ou igual à data limite de inscrição
                     if data_atual <= data_limite_dt:
                         # Verificando se os dados estão presentes nos vetores
@@ -118,8 +118,6 @@ if editais_encontrados:
     pdf.cell(200, 6, txt="-" * 134, ln=True)
     pdf.cell(200, 6, txt="" * 134, ln=True)
     
-    
-
     # Resetando a cor do texto para preto
     pdf.set_text_color(0, 0, 0)
 
