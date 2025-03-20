@@ -19,7 +19,7 @@ response.raise_for_status()  # Verifica se a requisição foi bem-sucedida
 soup = BeautifulSoup(response.content, 'html.parser')
 
 # Vetores de dados que vão limitar a impressão dos editais
-fatec_vetor = ['São Paulo','Guarulhos','Mauá','Itaquaquecetuba','Zona Leste','Ferraz de Vasconcelos','Tatuapé'] # Exemplo: fatec_vetor = ["Tatuí", "Baixada Santista"]
+fatec_vetor = [] # Exemplo: fatec_vetor = ["Tatuí", "Baixada Santista"]
 curso_vetor = [] # Exemplo: curso_vetor = ["Gestão da Tecnologia da Informação", "Processos Gerenciais"]           
 disciplina_vetor = [] # Exemplo: disciplina_vetor = ["PROJETOS DE TECNOLOGIA DA INFORMAÇÃO II", "Teoria das Organizações"]
 area_disciplina_vetor = [] # Exemplo: area_disciplina_vetor = ["Ciência da computação", "Administração e negócios"]
