@@ -109,8 +109,9 @@ if editais_encontrados:
     pdf.set_text_color(255, 0, 0)
     
     pdf.cell(200, 6, txt="-" * 134, ln=True)
-    pdf.cell(200, 6, txt="https://cesu.cps.sp.gov.br/editaisabertos/", link='https://cesu.cps.sp.gov.br/editaisabertos/', ln=True)
-    
+    pdf.cell(200, 6, txt="-> https://cesu.cps.sp.gov.br/editaisabertos/", link='https://cesu.cps.sp.gov.br/editaisabertos/', ln=True)
+    pdf.cell(200, 6, txt="-> Tabelas de áreas, disciplinas e especificidades, Anexo VI e Anexo VI", link='https://cesu.cps.sp.gov.br/diretrizes-para-alteracao-de-carga-horaria-docente-concurso-publico-pss/', ln=True)
+
     # Formatando a data e hora no formato desejado
     data_formatada = data_atual.strftime('%d/%m/%Y, %H:%M:%S')
 
@@ -137,9 +138,9 @@ if editais_encontrados:
         # Mudando a cor do texto para vermelho antes de adicionar o hiperlink
         pdf.set_text_color(255, 0, 0)
         
-        pdf.cell(200, 6, txt="Edital: link", link=edital['Edital'], ln=True)
-        pdf.cell(200, 6, txt="Ficha de Manifestação de Interesse: link", link=edital['Ficha de Manifestação de Interesse'], ln=True)
-        pdf.cell(200, 6, txt="Tabela de Pontuação Docente: link", link=edital['Tabela de Pontuação Docente'], ln=True)
+        pdf.cell(200, 6, txt="-> Edital: link", link=edital['Edital'], ln=True)
+        pdf.cell(200, 6, txt="-> Ficha de Manifestação de Interesse: link", link=edital['Ficha de Manifestação de Interesse'], ln=True)
+        pdf.cell(200, 6, txt="-> Tabela de Pontuação Docente: link", link=edital['Tabela de Pontuação Docente'], ln=True)
         
         # Resetando a cor do texto para preto
         pdf.set_text_color(0, 0, 0)
