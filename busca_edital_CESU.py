@@ -7,6 +7,12 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 from fpdf import FPDF
+from fpdf.enums import XPos, YPos
+
+FONT_PATH = "DejaVuSans.ttf"
+
+def safe(texto):
+    return texto if texto else ''
 
 # URL da planilha do Google Sheets
 sheet_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSPxryxjiyOz0bW5AIaB45RrgU-mp9O-bCFWWa9NIsu8f-80FZEz-dUKIR6fZ9qeGBW83clfV3-L_zF/pubhtml?gid=0&single=true"
@@ -19,7 +25,7 @@ response.raise_for_status()  # Verifica se a requisição foi bem-sucedida
 soup = BeautifulSoup(response.content, 'html.parser')
 
 # Vetores de dados que vão limitar a impressão dos editais
-fatec_vetor = [] # Exemplo: fatec_vetor = ["Tatuí", "Baixada Santista"]
+fatec_vetor = ['Sebrae','Itaquera','Atibaia','Itaquaquecetuba','Guarulhos','Ferraz de Vasconcelos','São Paulo','Osasco','Mauá','São Bernardo do Campo','São Caetano do Sul','Diadema','Tatuapé','Zona Leste'] # Exemplo: fatec_vetor = ["Tatuí", "Baixada Santista"]
 curso_vetor = [] # Exemplo: curso_vetor = ["Gestão da Tecnologia da Informação", "Processos Gerenciais"]           
 disciplina_vetor = [] # Exemplo: disciplina_vetor = ["PROJETOS DE TECNOLOGIA DA INFORMAÇÃO II", "Teoria das Organizações"]
 area_disciplina_vetor = [] # Exemplo: area_disciplina_vetor = ["Ciência da computação", "Administração e negócios"]
@@ -100,56 +106,79 @@ else:
     exit(1)
 
 # Gerando o PDF com os editais encontrados, caso existam
-if editais_encontrados:
-    pdf = FPDF(orientation='P')  # Mudando a orientação para retrato
-    pdf.add_page()
-    pdf.set_font("Arial", style='B', size=12)  # Definindo o texto em negrito
-   
-    # Mudando a cor do texto para vermelho antes de adicionar o hiperlink
-    pdf.set_text_color(255, 0, 0)
-    
-    pdf.cell(200, 6, txt="-" * 134, ln=True)
-    pdf.cell(200, 6, txt="-> https://cesu.cps.sp.gov.br/editaisabertos/", link='https://cesu.cps.sp.gov.br/editaisabertos/', ln=True)
-    pdf.cell(200, 6, txt="-> Tabelas de áreas, disciplinas e especificidades, Anexo VI e Anexo VI", link='https://cesu.cps.sp.gov.br/diretrizes-para-alteracao-de-carga-horaria-docente-concurso-publico-pss/', ln=True)
+pdf = FPDF()
+pdf.add_page()
+pdf.add_font("DejaVu", "", FONT_PATH)
+pdf.set_font("DejaVu", size=12)
 
-    # Formatando a data e hora no formato desejado
-    data_formatada = data_atual.strftime('%d/%m/%Y, %H:%M:%S')
+# Começo do "bloco"
+pdf.set_fill_color(240, 240, 240)  # cinza claro
+pdf.set_draw_color(200, 200, 200)
 
-    pdf.cell(200, 6, txt=f"Data: {data_formatada}", ln=True)
-    pdf.cell(200, 6, txt="-" * 134, ln=True)
-    pdf.cell(200, 6, txt="" * 134, ln=True)
+# Mudando a cor do texto para azul antes de adicionar o hiperlink
+pdf.set_text_color(0, 0, 255)
+y_inicio = pdf.get_y()
+pdf.cell(0, 6, "", new_x=XPos.LMARGIN, new_y=YPos.NEXT)  # espaço inicial
+
+# Cabeçalho do bloco
+pdf.set_font("DejaVu", size=12)
+pdf.cell(0, 8, text="https://cesu.cps.sp.gov.br/editaisabertos/",
+         link='https://cesu.cps.sp.gov.br/editaisabertos/',
+         new_x=XPos.LMARGIN, new_y=YPos.NEXT, fill=True)
+pdf.cell(0, 8, text="Tabelas de áreas, disciplinas e especificidades",
+         link='https://cesu.cps.sp.gov.br/diretrizes-para-alteracao-de-carga-horaria-docente-concurso-publico-pss/',
+         new_x=XPos.LMARGIN, new_y=YPos.NEXT, fill=True)
+
+# Resetando a cor do texto para preto
+pdf.set_text_color(0, 0, 0)
+
+# Formatando a data e hora no formato desejado
+pdf.cell(0, 8, text=f"Data: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}",
+         new_x=XPos.LMARGIN, new_y=YPos.NEXT, fill=True)
+pdf.set_font("DejaVu", size=12)
+
+for edital in editais_encontrados:
+    # Estimar altura e quebrar página se necessário
+    altura_bloco = 70  # ajuste conforme necessário
+    if pdf.get_y() + altura_bloco > pdf.page_break_trigger:
+        pdf.add_page()
+
+    # Começo do "bloco"
+    pdf.set_fill_color(240, 240, 240)  # cinza claro
+    pdf.set_draw_color(200, 200, 200)
+    y_inicio = pdf.get_y()
+    pdf.cell(0, 6, "", new_x=XPos.LMARGIN, new_y=YPos.NEXT)  # espaço inicial
+
+    # Cabeçalho do bloco
+    pdf.set_font("DejaVu", size=12)
+    pdf.cell(0, 8, text=f"Edital Nº {safe(edital['Edital No'])} - Fatec {safe(edital['Fatec'])}",
+             new_x=XPos.LMARGIN, new_y=YPos.NEXT, fill=True)
+    pdf.set_font("DejaVu", size=12)
+
+    # Linha 1 e 2
+    pdf.cell(0, 6, text=f"Curso: {safe(edital['Curso'])}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.cell(0, 6, text=f"Disciplina: {safe(edital['Disciplina'])}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+    # Linha 3
+    pdf.cell(100, 6, text=f"Período: {safe(edital['Período da aula'])}", new_x=XPos.RIGHT, new_y=YPos.TOP)
+    pdf.cell(0, 6, text=f"Tipo: {safe(edital['Determinado ou indeterminado'])}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+    # Linha 4
+    pdf.cell(100, 6, text=f"Abertura: {safe(edital['Data de abertura para inscrição'])}", new_x=XPos.RIGHT, new_y=YPos.TOP)
+    pdf.cell(0, 6, text=f"Encerramento: {safe(edital['Data limite para inscrição'])}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+    # Área e links
+    pdf.multi_cell(0, 6, text=f"Área(s): {safe(edital['Área(s) da disciplina'])}")
+    pdf.set_text_color(0, 0, 255)
     
-    # Resetando a cor do texto para preto
+    pdf.cell(0, 0, text="", new_x=XPos.LMARGIN, new_y=YPos.TOP)
+    pdf.cell(0, 6, text="Link do Edital", link=safe(edital['Edital']), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.cell(0, 6, text="Ficha de Interesse", link=safe(edital['Ficha de Manifestação de Interesse']), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+    pdf.cell(0, 6, text="Tabela de Pontuação", link=safe(edital['Tabela de Pontuação Docente']), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
     pdf.set_text_color(0, 0, 0)
 
-    pdf.set_font("Arial", size=12)
+    # Espaço inferior
+    pdf.cell(0, 4, text="", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
-    for edital in editais_encontrados:
-        pdf.cell(200, 6, txt=f"Edital No: {edital['Edital No']}", ln=True)
-        pdf.cell(200, 6, txt=f"Fatec: {edital['Fatec']}", ln=True)
-        pdf.cell(200, 6, txt=f"Curso: {edital['Curso']}", ln=True)
-        pdf.cell(200, 6, txt=f"Disciplina: {edital['Disciplina']}", ln=True)
-        pdf.multi_cell(200, 6, txt=f"Área(s) da disciplina: {edital['Área(s) da disciplina']}")
-        pdf.cell(200, 6, txt=f"Determinado ou indeterminado: {edital['Determinado ou indeterminado']}", ln=True)
-        pdf.cell(200, 6, txt=f"Data de abertura para inscrição: {edital['Data de abertura para inscrição']}", ln=True)
-        pdf.cell(200, 6, txt=f"Período da aula: {edital['Período da aula']}", ln=True)
-        pdf.cell(200, 6, txt=f"Data limite para inscrição: {edital['Data limite para inscrição']}", ln=True)
-        
-        # Mudando a cor do texto para vermelho antes de adicionar o hiperlink
-        pdf.set_text_color(255, 0, 0)
-        
-        pdf.cell(200, 6, txt="-> Edital: link", link=edital['Edital'], ln=True)
-        pdf.cell(200, 6, txt="-> Ficha de Manifestação de Interesse: link", link=edital['Ficha de Manifestação de Interesse'], ln=True)
-        pdf.cell(200, 6, txt="-> Tabela de Pontuação Docente: link", link=edital['Tabela de Pontuação Docente'], ln=True)
-        
-        # Resetando a cor do texto para preto
-        pdf.set_text_color(0, 0, 0)
-        
-        pdf.cell(200, 6, txt="-" * 134, ln=True)
-
-    pdf.output("editais.pdf")
-    print("Arquivo editais.pdf gerado com sucesso!")
-else:
-    print("Nenhum edital encontrado de acordo com os critérios. Arquivo PDF não gerado.")
-    
-exit(0)
+pdf.output("editais.pdf")
+print("Arquivo editais.pdf gerado com sucesso com parâmetros atualizados!")
