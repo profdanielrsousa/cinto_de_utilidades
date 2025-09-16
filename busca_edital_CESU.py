@@ -86,10 +86,10 @@ pdf.set_draw_color(200, 200, 200)
 pdf.set_text_color(0, 0, 255)
 
 # Cabeçalho do bloco
-pdf.cell(0, 8, "https://cesu.cps.sp.gov.br/editaisabertos/", link='https://cesu.cps.sp.gov.br/editaisabertos/',
+pdf.cell(0, 8, "https://cgesg.cps.sp.gov.br/editaisabertos/", link='https://cgesg.cps.sp.gov.br/editaisabertos/',
          new_x=XPos.LMARGIN, new_y=YPos.NEXT, fill=True)
 pdf.cell(0, 8, "Tabelas de áreas, disciplinas e especificidades",
-         link='https://cesu.cps.sp.gov.br/diretrizes-para-alteracao-de-carga-horaria-docente-concurso-publico-pss/',
+         link='https://cgesg.cps.sp.gov.br/diretrizes-para-alteracao-de-carga-horaria-docente-concurso-publico-pss/',
          new_x=XPos.LMARGIN, new_y=YPos.NEXT, fill=True)
 
 # Resetando a cor do texto para preto
