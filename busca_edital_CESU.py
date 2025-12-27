@@ -70,7 +70,9 @@ df_filtrado = df[filtros]
 
 if df_filtrado.empty:
     print("Nenhum edital encontrado com os critérios especificados.")
-    exit(0)
+    flag_edital = False
+else:
+    flag_edital = True
 
 # Gerando o PDF com os editais encontrados, caso existam
 pdf = FPDF()
@@ -99,7 +101,54 @@ pdf.set_text_color(0, 0, 0)
 pdf.cell(0, 8, f"Data: {datetime.now().strftime('%d/%m/%Y, %H:%M:%S')}",
          new_x=XPos.LMARGIN, new_y=YPos.NEXT, fill=True)
 
-for _, edital in df_filtrado.iterrows():
+if flag_edital == True:
+    for _, edital in df_filtrado.iterrows():
+        
+        # Estimar altura e quebrar página se necessário
+        altura_bloco = 70  # ajuste conforme necessário
+        if pdf.get_y() + altura_bloco > pdf.page_break_trigger:
+            pdf.add_page()
+
+        # Começo do "bloco"
+        pdf.set_fill_color(240, 240, 240)  # cinza claro
+        pdf.set_draw_color(200, 200, 200)
+        pdf.cell(0, 6, "", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+        # Cabeçalho do bloco
+        pdf.set_text_color(0, 0, 0)
+        pdf.cell(0, 8, f"Edital Nº {edital['Edital No']} - Fatec {edital['Fatec']}",
+                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, fill=True)
+
+        # Linha 1 e 2
+        pdf.cell(0, 6, f"Curso: {edital['Curso']}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(0, 6, f"Disciplina: {edital['Disciplina']}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        
+        # Linha 3
+        pdf.cell(100, 6, f"Período: {edital['Período']}", new_x=XPos.RIGHT, new_y=YPos.TOP)
+        pdf.cell(0, 6, f"Tipo: {edital['Determinado ou indeterminado']}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+        # Tratamento seguro para datas
+        data_abertura = edital['Data abertura'].strftime('%d/%m/%Y') if pd.notnull(edital['Data abertura']) else "---"
+        data_limite = edital['Data limite'].strftime('%d/%m/%Y') if pd.notnull(edital['Data limite']) else "---"
+
+        # Linha 4
+        pdf.cell(100, 6, f"Abertura: {data_abertura}", new_x=XPos.RIGHT, new_y=YPos.TOP)
+        pdf.cell(0, 6, f"Encerramento: {data_limite}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+        # Área e links
+        pdf.multi_cell(0, 6, f"Área(s): {edital['Área da disciplina']}")
+
+        pdf.set_text_color(0, 0, 255)
+        pdf.cell(0, 0, text="", new_x=XPos.LMARGIN, new_y=YPos.TOP)
+        pdf.cell(0, 6, "Link do Edital", link=str(edital['Edital']), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(0, 6, "Ficha de Interesse", link=str(edital['Ficha']), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.cell(0, 6, "Tabela de Pontuação", link=str(edital['Tabela']), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        pdf.set_text_color(0, 0, 0)
+        
+        # Espaço inferior
+        pdf.cell(0, 4, "", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+
+else:
     
     # Estimar altura e quebrar página se necessário
     altura_bloco = 70  # ajuste conforme necessário
@@ -113,37 +162,8 @@ for _, edital in df_filtrado.iterrows():
 
     # Cabeçalho do bloco
     pdf.set_text_color(0, 0, 0)
-    pdf.cell(0, 8, f"Edital Nº {edital['Edital No']} - Fatec {edital['Fatec']}",
+    pdf.cell(0, 8, f"Nenhum edital encontrado com os critérios especificados.",
              new_x=XPos.LMARGIN, new_y=YPos.NEXT, fill=True)
-
-    # Linha 1 e 2
-    pdf.cell(0, 6, f"Curso: {edital['Curso']}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.cell(0, 6, f"Disciplina: {edital['Disciplina']}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    
-    # Linha 3
-    pdf.cell(100, 6, f"Período: {edital['Período']}", new_x=XPos.RIGHT, new_y=YPos.TOP)
-    pdf.cell(0, 6, f"Tipo: {edital['Determinado ou indeterminado']}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-    # Tratamento seguro para datas
-    data_abertura = edital['Data abertura'].strftime('%d/%m/%Y') if pd.notnull(edital['Data abertura']) else "---"
-    data_limite = edital['Data limite'].strftime('%d/%m/%Y') if pd.notnull(edital['Data limite']) else "---"
-
-    # Linha 4
-    pdf.cell(100, 6, f"Abertura: {data_abertura}", new_x=XPos.RIGHT, new_y=YPos.TOP)
-    pdf.cell(0, 6, f"Encerramento: {data_limite}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-
-    # Área e links
-    pdf.multi_cell(0, 6, f"Área(s): {edital['Área da disciplina']}")
-
-    pdf.set_text_color(0, 0, 255)
-    pdf.cell(0, 0, text="", new_x=XPos.LMARGIN, new_y=YPos.TOP)
-    pdf.cell(0, 6, "Link do Edital", link=str(edital['Edital']), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.cell(0, 6, "Ficha de Interesse", link=str(edital['Ficha']), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.cell(0, 6, "Tabela de Pontuação", link=str(edital['Tabela']), new_x=XPos.LMARGIN, new_y=YPos.NEXT)
-    pdf.set_text_color(0, 0, 0)
-    
-    # Espaço inferior
-    pdf.cell(0, 4, "", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
 pdf.output("editais.pdf")
 print("✅ Arquivo 'editais.pdf' gerado com sucesso!")
