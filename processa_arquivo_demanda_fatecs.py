@@ -9,8 +9,8 @@ import pandas as pd
 INPUT_CSV = "todas_fatecs_demanda.csv"                       # arquivo original com os dados
                                                              # gerado pelo busca_demanda_vestibular_fatec.py
 OUTPUT_NORMALIZED = "todas_fatecs_demanda_normalizado.csv"   # saída final
-DICT_TEMPLATE = "dic_unidades_template.csv"                  # gerado com valores únicos (útil para a criação do dicionário)
-DICT_CSV = "dic_unidades_template_edited.csv"                # seu dicionário editado (um alias por linha)
+DICT_TEMPLATE = "dicionario.csv"                             # gerado com valores únicos (útil para a criação do dicionário)
+DICT_CSV = "dicionario_editado.csv"                          # seu dicionário editado (um alias por linha)
 
 # Normalização mínima: só espaços (colapsa internos + strip)
 def normalize_space(s: str) -> str:
@@ -42,45 +42,63 @@ def build_alias_mapping(dict_csv_path: str):
             dmap[key] = canonical
     return dmap
 
-# Normaliza e aplica o mapa
-def normalize_unidade(df: pd.DataFrame, dmap: dict) -> pd.DataFrame:
-    if "Unidade" not in df.columns:
-        raise KeyError("Coluna 'Unidade' não encontrada no CSV.")
+# Normaliza e aplica o mapa para um campo específico
+def normalize_column(df: pd.DataFrame, column_name: str, dmap: dict) -> pd.DataFrame:
+    if column_name not in df.columns:
+        raise KeyError(f"Coluna '{column_name}' não encontrada no CSV.")
     out = df.copy()
-
-    # normalização básica de espaços
-    norm_before = out["Unidade"].astype(str).apply(normalize_space)
+    norm_before = out[column_name].astype(str).apply(normalize_space)
     keys_upper = norm_before.str.upper()
-
-    # aplica dicionário (se existir chave, troca pelo canonical)
     canon = keys_upper.map(lambda k: dmap.get(k, None))
-    out["Unidade"] = norm_before
+    out[column_name] = norm_before
     mask = canon.notna()
-    out.loc[mask, "Unidade"] = canon[mask].values
+    out.loc[mask, column_name] = canon[mask].values
     return out
 
 # Fluxo principal
 df = pd.read_csv(INPUT_CSV, encoding="utf-8")
 
-# Gera template com Unidades únicas (já normalizadas)
-unique_unidades = (
-    pd.DataFrame({"Unidade": df["Unidade"].astype(str)})
-    .assign(Unidade_normalizada=lambda d: d["Unidade"].apply(normalize_space))
-    .drop_duplicates(subset=["Unidade_normalizada"])
-)
-template = unique_unidades["Unidade_normalizada"].to_frame(name="aliases")
-template["canonical"] = template["aliases"]  # por padrão, alias == canonical
-template.to_csv(DICT_TEMPLATE, index=False)
+# Gera template com valores únicos de Unidade e Período (já normalizadas)
+templates = []
+
+# Unidade
+if "Unidade" in df.columns:
+    uniq_un = (
+        pd.DataFrame({"Unidade": df["Unidade"].astype(str)})
+        .assign(aliases=lambda d: d["Unidade"].apply(normalize_space))
+        .drop_duplicates(subset=["aliases"])
+    )[["aliases"]]
+    uniq_un["canonical"] = uniq_un["aliases"]
+    templates.append(uniq_un[["aliases", "canonical"]])
+
+# Período
+if "Período" in df.columns:
+    uniq_pe = (
+        pd.DataFrame({"Período": df["Período"].astype(str)})
+        .assign(aliases=lambda d: d["Período"].apply(normalize_space))
+        .drop_duplicates(subset=["aliases"])
+    )[["aliases"]]
+    uniq_pe["canonical"] = uniq_pe["aliases"]
+    templates.append(uniq_pe[["aliases", "canonical"]])
+
+# Concatena e salva template único
+template_df = pd.concat(templates, ignore_index=True)
+template_df.to_csv(DICT_TEMPLATE, index=False, encoding="utf-8")
 
 # Carrega seu dicionário (ou use o template)
 dmap = build_alias_mapping(DICT_CSV)
 
-# Aplica normalização + mapeamento e salva
-normalized_df = normalize_unidade(df, dmap)
-normalized_df.to_csv(OUTPUT_NORMALIZED, index=False)
+# Aplica normalização e mapeamento nas duas colunas
+out = df.copy()
+out = normalize_column(out, "Unidade", dmap)
+out = normalize_column(out, "Período", dmap)
+
+# Salva saída final
+out.to_csv(OUTPUT_NORMALIZED, index=False, encoding="utf-8")
 
 print({
     "linhas_no_arquivo": len(df),
-    "unidades_unicas_no_template": len(template),
+    "linhas_no_dicionario": len(template_df),
+    "arquivo_dicionario": DICT_TEMPLATE,
     "arquivo_gerado": OUTPUT_NORMALIZED
 })
