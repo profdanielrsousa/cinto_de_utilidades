@@ -14,7 +14,7 @@ from fpdf.enums import XPos, YPos
 FONT_PATH = "DejaVuSans.ttf"
 
 # URL da planilha do Google Sheets e arquivo .csv salvo
-CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSPxryxjiyOz0bW5AIaB45RrgU-mp9O-bCFWWa9NIsu8f-80FZEz-dUKIR6fZ9qeGBW83clfV3-L_zF/pub?gid=0&single=true&output=csv"
+CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR-Rbw9WfucgjbtltDleHtKSccmBNRZALv-_ccWL4YtfEk57RlcBAhzPJVT3sYqOA/pub?output=csv"
 CSV_PATH = "editais_cesu.csv"
 
 # Vetores de dados que vão limitar a impressão dos editais. Filtros de busca (vazios = sem filtro)
